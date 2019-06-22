@@ -6,7 +6,7 @@ import re
 import os
 import argparse
 import threading
-import threadpool  #线程池
+import threadpool  # 线程池
 
 # Create ArgumentParser() object
 parser = argparse.ArgumentParser()
@@ -102,7 +102,6 @@ start = time.time()
 r = requests.get('http://jp.myav.tv/zh-TW/Search/Product', params=params)
 r.encoding = 'UTF-8'
 rtext = r.text
-print('finish request')
 # 获取beautifulsoup 对象
 soup = BeautifulSoup(rtext, 'html.parser')
 # 每一个item的class name
@@ -111,7 +110,7 @@ itemclass = "resultBox"
 titleclass = "highlightText"
 # 获取所有的item
 itemResults = soup.find_all('div', itemclass)
-
+print('finish request. ', 'total count: ', len(itemResults))
 for index, itemSoup in enumerate(itemResults):
     hrefas = itemSoup.find_all('a')
     hrefimgs = itemSoup.find_all('img')
@@ -166,9 +165,11 @@ for index, itemSoup in enumerate(itemResults):
 # 启动线程池处理
 pool = threadpool.ThreadPool(20)
 tasks = threadpool.makeRequests(downloadImage, poolParams)
-#makeRequests构造线程task请求,第一个参数是线程函数,第二个是参数数组
+# makeRequests构造线程task请求,第一个参数是线程函数,第二个是参数数组
 [pool.putRequest(task) for task in tasks]
-#列表推导式,putRequest向线程池里加task,让pool自己去调度task
-pool.wait()  #等所有任务结束
+# 列表推导式,putRequest向线程池里加task,让pool自己去调度task
+pool.wait()  # 等所有任务结束
 end = time.time()
 print('total cost: ', end - start, 's')
+appendFile('/'.join([folder, 'log.txt']), 'success! total count: ' +
+           str(len(itemResults)) + ', total cost: ' + str(end - start) + 's')
